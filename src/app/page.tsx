@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from "react";
-import Tesseract from 'tesseract.js';
 import { ProgressBar } from "./components/progress-bar";
+import Tesseract from "tesseract.js";
 
 export default function Home() {
   const [text, setText] = useState<string>('');
@@ -15,13 +15,17 @@ export default function Home() {
     const file = event.target.files?.[0];
     if (file) {
       setLoading(true);
-      const result = await Tesseract.recognize(file, 'por', {
+      const worker = await Tesseract.createWorker("por", 1, {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.floor(m.progress * 100));
           }
-        },
+        }
       });
+
+      const result = await worker.recognize(file);
+
+      console.log(result.data.text);
       setText(result.data.text);
       setLoading(false);
     }
@@ -29,14 +33,10 @@ export default function Home() {
 
   return (
     <main className="p-8 ">
-
-
-      <div className="max-w-2xl flex flex-col gap-4">
+      <div className="max-w-5xl flex flex-col gap-4">
         <input
           type="file"
-          name="image"
-          id="input-image"
-          className="border border-gray-200 rounded p-4"
+          className="border border-gray-200 rounded p-4 w-fit"
           onChange={handleImageUpload}
         />
 
@@ -47,6 +47,7 @@ export default function Home() {
           </div>
         )}
       </div>
+
     </main>
   );
 }
